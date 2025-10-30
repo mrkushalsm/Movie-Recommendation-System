@@ -1,0 +1,33 @@
+# LangGraph and LangChain
+langgraph>=0.2.0
+langchain>=0.2.0
+langchain-google-genai>=1.0.0
+langchain-community>=0.2.0
+
+# Vector Stores
+faiss-cpu>=1.8.0
+chromadb>=0.4.0
+
+# Caching
+redis>=5.0.0
+
+# API Clients
+requests>=2.31.0
+tmdbv3api>=1.9.0
+wikipedia>=1.4.0
+rottentomatoes-python>=0.0.1
+
+# Embeddings & NLP
+sentence-transformers>=2.2.0
+google-generativeai>=0.3.0
+
+# Search & Ranking
+rank-bm25>=0.2.2
+
+# Data Processing
+pandas>=2.0.0
+numpy>=1.24.0
+python-dotenv>=1.0.0
+
+# Date parsing
+python-dateutil>=2.8.2
