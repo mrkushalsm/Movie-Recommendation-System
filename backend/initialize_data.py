@@ -2,7 +2,7 @@
 import os
 from tqdm import tqdm
 from data_sources.tmdb_client import tmdb_client
-from vector_store.faiss_store import FAISSVectorStore
+from vector_store.chroma_store import ChromaVectorStore
 from retrieval.bm25_retriever import BM25Retriever
 from config import config
 
@@ -64,15 +64,15 @@ def enrich_movies(movies: list) -> list:
     print(f"Enriched {len(enriched)} movies")
     return enriched
 
-def initialize_vector_store(movies: list):
-    """Initialize FAISS vector store."""
-    print("\nInitializing FAISS vector store...")
+def init_vector_store(enriched_movies):
+    """Initialize Chroma vector store."""
+    print("\nInitializing Chroma vector store...")
     
-    vector_store = FAISSVectorStore()
+    vector_store = ChromaVectorStore()
     
     # Add all movies at once
     try:
-        vector_store.add_movies(movies)
+        vector_store.add_movies(enriched_movies)
     except Exception as e:
         print(f"Error adding movies: {e}")
         return

@@ -9,7 +9,7 @@ from retrieval.hybrid_retriever import hybrid_retriever
 from retrieval.reranker import reranker
 from retrieval.diversity_filter import diversity_filter
 from utils.temporal_parser import temporal_parser
-from vector_store.faiss_store import vector_store
+from vector_store.chroma_store import vector_store
 from config import config
 import json
 

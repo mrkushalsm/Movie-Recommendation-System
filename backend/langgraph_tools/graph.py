@@ -115,7 +115,7 @@ class MovieRecommendationGraph:
         wiki_data = {}
         hybrid_results = []
         
-        # 1. Hybrid retrieval (FAISS + BM25) - RAG component
+        # 1. Hybrid retrieval (Chroma + BM25) - RAG component
         print("  → Hybrid retrieval (Vector + BM25)...")
         try:
             hybrid_results = hybrid_retriever.search(

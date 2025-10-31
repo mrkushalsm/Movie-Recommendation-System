@@ -7,7 +7,7 @@ from typing import List, Dict, Any
 from langgraph_tools.graph import create_recommendation_graph
 from utils.cache_manager import cache_manager
 from data_sources.tmdb_client import tmdb_client
-from vector_store.faiss_store import FAISSVectorStore as FAISSStore
+from vector_store.chroma_store import ChromaVectorStore as ChromaStore
 from retrieval.bm25_retriever import BM25Retriever
 
 
@@ -50,12 +50,12 @@ class MovieRecommendationApp:
         self.graph = create_recommendation_graph()
 
     def load_indexes(self):
-        """Load or initialize FAISS vector store and BM25 index."""
+        """Load or initialize Chroma vector store and BM25 index."""
         try:
             # Try to load existing indexes
-            self.vector_store = FAISSStore()
+            self.vector_store = ChromaStore()
             self.vector_store.load()
-            count = self.vector_store.index.ntotal if self.vector_store.index else 0
+            count = self.vector_store.collection.count() if self.vector_store.collection else 0
             print(f"  ✓ Loaded {count} movies from vector store")
 
             self.bm25_retriever = BM25Retriever()
@@ -65,7 +65,7 @@ class MovieRecommendationApp:
             print("  ℹ No existing vector store found. Creating new one...")
             print("  ℹ Database will grow dynamically from your queries")
             # Create new empty indexes
-            self.vector_store = FAISSStore()
+            self.vector_store = ChromaStore()
             self.bm25_retriever = BM25Retriever()
 
     def get_recommendations(self, query: str, top_k: int = 5) -> Dict[str, Any]:
