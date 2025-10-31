@@ -27,6 +27,8 @@ class IntelligentReRanker:
         Calculate composite score for re-ranking.
         
         Score = 0.25*semantic + 0.2*genre + 0.2*rating + 0.15*recency + 0.1*popularity + 0.1*keyword_match
+        
+        Plus bonus: plot matching from Wikipedia data
         """
         # Semantic similarity (already calculated)
         semantic_score = semantic_similarity
@@ -43,20 +45,28 @@ class IntelligentReRanker:
         # Popularity signal (log-normalized)
         popularity_score = self._normalize_popularity(movie.get("popularity", 0))
         
-        # Keyword match bonus (NEW!)
+        # Keyword match bonus
         keyword_match_score = self._calculate_keyword_match(movie, query)
         
-        # Weighted sum (adjusted weights to include keyword matching)
+        # Wikipedia plot matching (NEW!)
+        wiki_plot_score = self._calculate_wiki_plot_match(movie, query)
+        
+        # Weighted sum
         composite = (
-            0.25 * semantic_score +      # Reduced from 0.3
-            0.2 * genre_score +
-            0.2 * rating_score +
-            0.15 * recency_score +
-            0.1 * popularity_score +
-            0.1 * keyword_match_score    # NEW: 10% weight for keyword matching
+            0.25 * semantic_score +      # Semantic similarity
+            0.2 * genre_score +          # Genre overlap
+            0.2 * rating_score +         # User ratings
+            0.15 * recency_score +       # Recency
+            0.1 * popularity_score +     # Popularity
+            0.1 * keyword_match_score +  # Title/overview keywords
+            0.05 * wiki_plot_score       # Wikipedia plot match (bonus!)
         )
         
-        return composite
+        # Boost if plot matches well
+        if wiki_plot_score > 0.7:
+            composite *= 1.1  # 10% boost for excellent plot match
+        
+        return min(composite, 1.0)
     
     def _calculate_keyword_match(self, movie: Dict, query: str) -> float:
         """Calculate keyword matching bonus based on title/overview."""
@@ -83,6 +93,47 @@ class IntelligentReRanker:
         overview_words = set(overview.split())
         overview_matches = len(query_keywords & overview_words)
         score += (overview_matches / len(query_keywords)) * 0.4  # Overview matches worth 40%
+        
+        return min(score, 1.0)
+    
+    def _calculate_wiki_plot_match(self, movie: Dict, query: str) -> float:
+        """Calculate plot matching score using Wikipedia plot data."""
+        wiki_data = movie.get("wiki_data", {})
+        
+        # Get plot and themes from Wikipedia
+        wiki_plot = wiki_data.get("plot", "")
+        wiki_themes = wiki_data.get("themes", "")
+        
+        if not wiki_plot and not wiki_themes:
+            return 0.0
+        
+        query_lower = query.lower()
+        query_words = set(query_lower.split())
+        
+        # Remove common words
+        stop_words = {'a', 'an', 'the', 'of', 'in', 'on', 'at', 'to', 'for', 'and', 'or', 'but', 'me', 'about', 'like', 'movie', 'film', 'recommend', 'me'}
+        query_keywords = query_words - stop_words
+        
+        if not query_keywords:
+            return 0.0
+        
+        score = 0.0
+        
+        # Check Wikipedia plot
+        if wiki_plot:
+            plot_lower = wiki_plot.lower()
+            plot_words = set(plot_lower.split())
+            plot_matches = len(query_keywords & plot_words)
+            plot_match_score = (plot_matches / len(query_keywords)) * 0.7  # Plot worth 70%
+            score += plot_match_score
+        
+        # Check Wikipedia themes
+        if wiki_themes:
+            themes_lower = wiki_themes.lower()
+            themes_words = set(themes_lower.split())
+            theme_matches = len(query_keywords & themes_words)
+            theme_match_score = (theme_matches / len(query_keywords)) * 0.3  # Themes worth 30%
+            score += theme_match_score
         
         return min(score, 1.0)
     

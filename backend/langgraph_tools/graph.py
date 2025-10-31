@@ -145,10 +145,11 @@ class MovieRecommendationGraph:
             print(f"    ⚠ TMDb API failed: {str(e)}")
             errors.append(f"TMDb search error: {str(e)}")
         
-        # 3. Wikipedia enrichment for top results
-        print("  → Wikipedia enrichment...")
+        # 3. Wikipedia enrichment for ALL results (for better plot matching)
+        print("  → Wikipedia enrichment (fetching plots for matching)...")
         try:
-            for movie in tmdb_results[:5]:
+            enriched_count = 0
+            for movie in tmdb_results:  # Enrich all, not just top 5
                 title = movie.get("title")
                 year = movie.get("release_date", "")[:4] if movie.get("release_date") else None
                 
@@ -156,9 +157,15 @@ class MovieRecommendationGraph:
                     wiki_info = wiki_client.get_movie_info(title, int(year) if year else None)
                     if wiki_info:
                         wiki_data[movie.get("id")] = wiki_info
-                        # Add to movie data
+                        # Add to movie data for re-ranking
                         movie["wiki_data"] = wiki_info
-            print(f"  ✓ Wikipedia enriched {len(wiki_data)} movies")
+                        # Add plot as searchable text for better matching
+                        if wiki_info.get("plot"):
+                            movie["wiki_plot"] = wiki_info["plot"]
+                        if wiki_info.get("themes"):
+                            movie["wiki_themes"] = wiki_info["themes"]
+                        enriched_count += 1
+            print(f"  ✓ Wikipedia enriched {enriched_count} movies with plots and themes")
         except Exception as e:
             print(f"  ⚠ Wikipedia enrichment failed: {str(e)}")
             errors.append(f"Wikipedia enrichment error: {str(e)}")

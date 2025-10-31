@@ -70,16 +70,16 @@ def initialize_vector_store(movies: list):
     
     vector_store = FAISSVectorStore()
     
-    # Add movies with progress bar
-    for movie in tqdm(movies, desc="Adding to vector store"):
-        try:
-            vector_store.add_movie(movie)
-        except Exception as e:
-            print(f"Error adding movie {movie.get('title')}: {e}")
+    # Add all movies at once
+    try:
+        vector_store.add_movies(movies)
+    except Exception as e:
+        print(f"Error adding movies: {e}")
+        return
     
     # Save
     vector_store.save()
-    print(f"✓ Vector store saved with {vector_store.count()} movies")
+    print(f"✓ Vector store saved with {vector_store.index.ntotal} movies")
 
 def initialize_bm25(movies: list):
     """Initialize BM25 index."""
